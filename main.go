@@ -23,10 +23,12 @@ const (
 
 	// ConnectionTimeout is the timeout for connections.
 	ConnectionTimeout = 30 * time.Second
+
+	ErrMsg = "Error serving file: %s"
 )
 
 var (
-	// logger is used for logging errors.
+	// logger is used for logging errors to a file named "errors.log".
 	logger = log.New(os.Stderr, "", log.LstdFlags)
 )
 
@@ -34,7 +36,7 @@ var (
 func serveFile(conn net.Conn, filename string, bufferSize int) {
 	file, err := os.Open(filename)
 	if err != nil {
-		logger.Printf("Error serving file: %s", err)
+		logger.Printf(ErrMsg, err)
 		return
 	}
 	defer func() {
@@ -48,14 +50,14 @@ func serveFile(conn net.Conn, filename string, bufferSize int) {
 		bytesRead, err := file.Read(buffer)
 		if err != nil {
 			if err != io.EOF {
-				logger.Printf("Error serving file: %s", err)
+				logger.Printf(ErrMsg, err)
 			}
 			break
 		}
 
 		_, err = conn.Write(buffer[:bytesRead])
 		if err != nil {
-			logger.Printf("Error serving file: %s", err)
+			logger.Printf(ErrMsg, err)
 			break
 		}
 	}
